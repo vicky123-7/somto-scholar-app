@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Somto Scholar App</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a14; --card: #111122; --card2: #181830; --text: #e8e8f8; --muted: #6b6b90;
+  --primary: #00f5d4; --secondary: #f5a623; --danger: #ff4d6d; --success: #00d68f;
+  --glow: rgba(0,245,212,0.18); --border: rgba(0,245,212,0.15);
+  box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+.light {
+  --bg: #f0f4ff; --card: #ffffff; --card2: #e8eeff; --text: #1a1a3e; --muted: #7070a0;
+  --primary: #4f46e5; --secondary: #f59e0b; --danger: #ef4444; --success: #10b981;
+  --glow: rgba(79,70,229,0.12); --border: rgba(79,70,229,0.18);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text);
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 20px; transition: background 0.4s, color 0.4s; position: relative; overflow-x: hidden;
+}
+body::before {
+  content:''; position:fixed; inset:0;
+  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 32px 32px; pointer-events:none; z-index:0; opacity:0.5;
+}
+canvas#confetti { position:fixed; top:0; left:0; pointer-events:none; z-index:999; }
+
+/* TOP BAR */
+.topbar { width:100%; max-width:820px; display:flex; align-items:center; justify-content:space-between; padding:12px 0; margin-bottom:10px; position:relative; z-index:10; }
+.topbar-logo { display:flex; align-items:center; gap:10px; }
+.topbar-logo img { width:40px; height:40px; border-radius:10px; border:2px solid var(--primary); box-shadow: 0 0 12px var(--glow); }
+.topbar-logo span { font-family:'Orbitron',sans-serif; font-size:14px; font-weight:700; color:var(--primary); letter-spacing:1px; }
+.topbar-actions { display:flex; gap:8px; }
+.icon-btn { background: var(--card2); border:1px solid var(--border); color:var(--text); border-radius:10px; width:38px; height:38px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.icon-btn:hover { border-color:var(--primary); color:var(--primary); box-shadow:0 0 10px var(--glow); }
+.icon-btn svg { width:18px; height:18px; }
+
+/* LAYOUT */
+.wrap { width:100%; max-width:820px; position:relative; z-index:1; }
+[hidden] { display:none !important; }
+.hero { text-align:center; margin:18px 0 22px; }
+.hero h1 { font-family:'Orbitron',sans-serif; font-size:clamp(1.5rem,5vw,2.4rem); font-weight:900; color:var(--primary); letter-spacing:2px; text-shadow:0 0 24px var(--glow); }
+.hero p { color:var(--muted); margin-top:8px; font-weight:300; }
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:22px; }
+.stat { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center; }
+.stat b { display:block; font-family:'DM Mono',monospace; font-size:1.6rem; color:var(--secondary); }
+.stat small { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.5px; }
+h2.sec { font-family:'Orbitron',sans-serif; font-size:.85rem; letter-spacing:2px; color:var(--muted); margin-bottom:12px; }
+.cats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; }
+.cat { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px 16px; cursor:pointer; text-align:center; color:var(--text); font-family:inherit; transition:all .25s; }
+.cat:hover { transform:translateY(-4px); border-color:var(--primary); box-shadow:0 0 22px var(--glow); }
+.cat .ic { font-size:2.2rem; display:block; margin-bottom:8px; }
+.cat strong { font-family:'Orbitron',sans-serif; font-size:.85rem; letter-spacing:1px; }
+.cat small { display:block; color:var(--muted); margin-top:6px; font-size:.78rem; }
+
+.modes { display:flex; gap:10px; margin-bottom:20px; }
+.mode { flex:1; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; color:var(--text); font-family:inherit; font-weight:600; cursor:pointer; text-align:center; transition:all .2s; }
+.mode small { display:block; color:var(--muted); font-size:.75rem; margin-top:3px; font-weight:400; }
+.mode.on { border-color:var(--primary); box-shadow:0 0 16px var(--glow); }
+/* QUIZ */
+.card { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:26px; box-shadow:0 0 30px var(--glow); }
+.q-head { display:flex; justify-content:space-between; align-items:center; font-family:'DM Mono',monospace; font-size:.85rem; color:var(--muted); margin-bottom:10px; }
+.bar { height:8px; background:var(--card2); border-radius:8px; overflow:hidden; margin-bottom:8px; }
+.bar i { display:block; height:100%; width:0; background:var(--primary); border-radius:8px; transition:width .3s; }
+.bar.time i { background:var(--secondary); transition:width .1s linear; }
+.q-text { font-size:clamp(1.15rem,3.5vw,1.5rem); font-weight:600; margin:20px 0; line-height:1.4; }
+.opts { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media (max-width:560px) { .opts { grid-template-columns:1fr; } }
+.opt { background:var(--card2); border:2px solid var(--border); border-radius:12px; padding:14px; color:var(--text); font-family:inherit; font-size:1rem; font-weight:500; cursor:pointer; transition:all .2s; text-align:left; }
+.opt:hover:not(:disabled) { border-color:var(--primary); transform:translateY(-2px); }
+.opt.ok { border-color:var(--success); background:rgba(0,214,143,.15); }
+.opt.no { border-color:var(--danger); background:rgba(255,77,109,.15); animation:shake .35s; }
+.opt:disabled { cursor:default; }
+@keyframes shake { 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.fb { min-height:26px; margin-top:16px; font-weight:600; }
+.fb.ok { color:var(--success); } .fb.no { color:var(--danger); }
+.btn { background:var(--primary); color:var(--bg); border:none; border-radius:12px; padding:13px 28px; font-family:'Orbitron',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:1px; cursor:pointer; transition:all .2s; margin-top:14px; }
+.btn:hover { box-shadow:0 0 18px var(--glow); transform:translateY(-2px); }
+.btn.ghost { background:transparent; color:var(--text); border:1px solid var(--border); margin-left:8px; }
+.result { text-align:center; }
+.result .big { font-size:3.5rem; }
+.result .score { font-family:'Orbitron',sans-serif; font-size:2.6rem; font-weight:900; color:var(--secondary); margin:8px 0; }
+.result p { color:var(--muted); }
+footer { margin:30px 0 10px; color:var(--muted); font-size:.8rem; letter-spacing:1px; position:relative; z-index:1; text-align:center; }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <img alt="Somto Scholar logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%230a0a14'/%3E%3Cpath d='M20 8 4 15l16 7 16-7z' fill='%2300f5d4'/%3E%3Cpath d='M10 20v7c0 3 5 6 10 6s10-3 10-6v-7l-10 4.5z' fill='%23f5a623'/%3E%3C/svg%3E">
+    <span>SOMTO SCHOLAR</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="icon-btn" id="soundBtn" title="Sound on/off" aria-label="Toggle sound">🔊</button>
+    <button class="icon-btn" id="themeBtn" title="Light/dark mode" aria-label="Toggle theme">🌙</button>
+  </div>
+</div>
+
+<main class="wrap">
+  <section id="home">
+    <div class="hero">
+      <h1>TEST YOUR BRAIN</h1>
+      <p>WAEC &amp; JAMB standard practice. Pick a subject, beat the clock, build your streak.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="xp">0</b><small>Total XP</small></div>
+      <div class="stat"><b id="best">0</b><small>Best streak</small></div>
+      <div class="stat"><b id="played">0</b><small>Quizzes</small></div>
+    </div>
+    <h2 class="sec">GAME MODE</h2>
+    <div class="modes">
+      <button class="mode" data-m="quick">⚡ Quick Round<small>5 questions</small></button>
+      <button class="mode" data-m="endless">♾️ Endless<small>3 lives · keeps getting harder</small></button>
+      <button class="mode ai" id="aiMode" hidden>✨ AI Questions<small>Unlimited · written by Claude</small></button>
+    </div>
+    <h2 class="sec">CHOOSE A SUBJECT</h2>
+    <div class="cats" id="cats"></div>
+  </section>
+
+  <section id="quiz" hidden>
+    <div class="card">
+      <div class="q-head"><span id="qNum">Question 1/5</span><span id="timeLeft">15s</span></div>
+      <div class="bar"><i id="prog"></i></div>
+      <div class="bar time"><i id="timer"></i></div>
+      <div class="q-text" id="qText"></div>
+      <div class="opts" id="opts"></div>
+      <div class="fb" id="fb"></div>
+      <button class="btn" id="nextBtn" hidden>NEXT →</button>
+      <button class="btn ghost" id="quitBtn">QUIT</button>
+    </div>
+  </section>
+
+  <section id="result" hidden>
+    <div class="card result">
+      <div class="big" id="rEmoji">🏆</div>
+      <h2 class="sec" id="rTitle" style="margin-top:8px">GREAT JOB</h2>
+      <div class="score" id="rScore">0/5</div>
+      <p id="rMsg"></p>
+      <button class="btn" id="againBtn">PLAY AGAIN</button>
+      <button class="btn ghost" id="homeBtn">HOME</button>
+    </div>
+  </section>
+</main>
+
+<footer>Created by Somto</footer>
+
+<script>
+// [question, correct answer, wrong, wrong, wrong]
+const BANK = {
+  math: { name:'Mathematics', icon:'➕', q:[
+    ['Simplify: 2³ × 2⁴','2⁷','2¹²','4⁷','4¹²'],
+    ['Solve: 3x − 7 = 11','x = 6','x = 4','x = 18','x = 5'],
+    ['Find the value of log₁₀ 1000.','3','10','100','30'],
+    ['What is the sum of the interior angles of a hexagon?','720°','540°','360°','900°'],
+    ['Express 0.00045 in standard form.','4.5 × 10⁻⁴','4.5 × 10⁻³','4.5 × 10⁻⁵','4.5 × 10⁴'],
+    ['If P = {2, 3, 5} and Q = {3, 5, 7}, find P ∩ Q.','{3, 5}','{2, 3, 5, 7}','{2, 7}','{3}'],
+    ['What is the gradient of the line y = 4x − 3?','4','−3','3','−4'],
+    ['Find the median of 4, 9, 6, 12, 8.','8','9','6','7.8'],
+    ['Solve: x² − 5x + 6 = 0','x = 2 or 3','x = −2 or −3','x = 1 or 6','x = −1 or 6'],
+    ['A fair die is thrown once. What is the probability of an even number?','1/2','1/3','1/6','2/3'],
+    ['Differentiate y = 3x² with respect to x.','6x','3x','6x²','x²'],
+    ['Express 25 (base 10) in base 2.','11001','10101','11010','10011'],
+    ['The mode of 2, 3, 3, 4, 5, 3, 6 is','3','4','2','5'],
+    ['If the probability of an event is 0.3, the probability that it does not occur is','0.7','0.3','1.3','0.03'],
+    ['The nth term of the sequence 3, 7, 11, 15, … is','4n − 1','3n + 4','4n + 1','n + 3'],
+    ['Evaluate sin 30° + cos 60°.','1','1/2','√3','2'],
+    ['In how many ways can the letters of “CAT” be arranged?','6','3','9','12']]},
+  english: { name:'English', icon:'📖', q:[
+    ['Choose the sentence that is correct.','Neither of the boys is here.','Neither of the boys are here.','Neither of the boys were here.','Neither of the boys have come.'],
+    ['“The wind whispered through the trees” contains which figure of speech?','Personification','Simile','Hyperbole','Irony'],
+    ['She has lived here ___ 2010.','since','for','from','at'],
+    ['Identify the noun clause: “I know that he is honest.”','that he is honest','I know','he is','know that'],
+    ['“He kicked the bucket” is an example of a/an','idiom','proverb','simile','metaphor'],
+    ['Choose the correctly spelt word.','Accommodation','Acommodation','Accomodation','Acomodation'],
+    ['What is the plural of “criterion”?','criteria','criterions','criterias','criteriae'],
+    ['“As busy as a bee” is a','simile','metaphor','irony','pun'],
+    ['By the time he arrived, we ___ dinner.','had finished','have finished','finish','were finish'],
+    ['A word that modifies a verb is called a/an','adverb','adjective','pronoun','conjunction'],
+    ['He is allergic ___ dust.','to','with','of','for'],
+    ['“Time is money” is a','proverb','simile','idiom','pun'],
+    ['The opposite of “verbose” is','concise','wordy','talkative','lengthy'],
+    ['Which sentence is in the passive voice?','The letter was written by Ada.','Ada wrote the letter.','Ada is writing the letter.','Ada will write the letter.'],
+    ['Choose the correctly spelt word.','Necessary','Neccessary','Necesary','Neccesary'],
+    ['A group of words with a subject and a verb that forms part of a sentence is a','clause','phrase','paragraph','prefix'],
+    ['The plural of “phenomenon” is','phenomena','phenomenons','phenomenas','phenomenae'],
+    ['“Her tears were rivers” is an example of','metaphor','simile','alliteration','onomatopoeia'],
+    ['The word “unhappy” contains the prefix','un-','-py','hap-','-happy']]},
+  chemistry: { name:'Chemistry', icon:'🧪', q:[
+    ['The atomic number of an element is the number of','protons in its nucleus','neutrons in its nucleus','protons and neutrons','valence electrons'],
+    ['Which of these is a noble gas?','Argon','Chlorine','Nitrogen','Oxygen'],
+    ['What is the pH of a neutral solution at 25°C?','7','0','14','1'],
+    ['Which gas is liberated when dilute HCl reacts with zinc?','Hydrogen','Oxygen','Chlorine','Carbon dioxide'],
+    ['Separating crude oil into its components is called','fractional distillation','filtration','crystallisation','sublimation'],
+    ['The type of bonding in NaCl is','ionic','covalent','metallic','hydrogen'],
+    ['The general formula for alkanes is','CₙH₂ₙ₊₂','CₙH₂ₙ','CₙH₂ₙ₋₂','CₙHₙ'],
+    ['Which of these is an alkali?','NaOH','HCl','H₂SO₄','NaCl'],
+    ['Rusting of iron requires','oxygen and water','oxygen only','water only','nitrogen and water'],
+    ['The oxidation number of Mn in KMnO₄ is','+7','+4','+6','+2']]},
+  geography: { name:'Geography', icon:'🌍', q:[
+    ['The longest river in Nigeria is','River Niger','River Benue','River Kaduna','River Ogun'],
+    ['The Harmattan is a','dry, dusty wind from the Sahara','moist wind from the Atlantic','cold ocean current','type of tropical storm'],
+    ['The imaginary line at 0° longitude is the','Prime Meridian','Equator','Tropic of Cancer','International Date Line'],
+    ['The highest mountain in Nigeria is','Chappal Waddi','Mount Cameroon','Jos Plateau','Obudu Hills'],
+    ['Which of these is a fold mountain range?','The Alps','Mount Kilimanjaro','Mount Cameroon','Mount Etna'],
+    ['The Equator is at latitude','0°','23½°N','90°N','66½°N'],
+    ['Lines joining places of equal atmospheric pressure are called','isobars','isotherms','isohyets','contours'],
+    ['The breaking down of rocks in place is called','weathering','erosion','deposition','transportation'],
+    ['Kainji Dam is built on which river?','Niger','Benue','Kaduna','Ogun'],
+    ['The Tropic of Cancer is at latitude','23½°N','23½°S','66½°N','0°']]},
+  civic: { name:'Civic Education', icon:'🏛️', q:[
+    ['Democracy is government of the people, by the people and','for the people','against the people','over the people','through the army'],
+    ['The head of the executive arm at the federal level in Nigeria is the','President','Chief Justice','Senate President','Speaker'],
+    ['Which of these is a fundamental human right?','Right to life','Right to a free car','Right to avoid tax','Right to ignore laws'],
+    ['What is the minimum voting age in Nigeria?','18 years','16 years','21 years','25 years'],
+    ['Which body conducts elections in Nigeria?','INEC','EFCC','NYSC','NDLEA'],
+    ['The Constitution is supreme because','all laws must conform to it','it is very old','the President wrote it','it is very long'],
+    ['Which of these is a duty of a citizen?','Paying taxes','Collecting bribes','Disobeying laws','Avoiding elections'],
+    ['The rule of law means','everyone is equal before the law','the ruler is above the law','the army makes laws','laws apply to the poor only'],
+    ['Power shared between central and regional governments is called','federalism','a unitary system','monarchy','dictatorship'],
+    ['How many states does Nigeria have?','36','30','37','32'],
+    ['The Nigerian Constitution currently in use was enacted in','1999','1979','1960','1963'],
+    ['Which of these is a function of the judiciary?','Interpreting the law','Making laws','Printing currency','Conducting elections'],
+    ['Becoming a citizen of a country by registration is called','naturalisation','emigration','deportation','extradition'],
+    ['Which of these is an agency that fights corruption in Nigeria?','EFCC','FRSC','NAFDAC','CBN'],
+    ['A political party’s written statement of its aims is its','manifesto','charter','petition','decree'],
+    ['The Senate of Nigeria has how many members?','109','360','36','100'],
+    ['A secret ballot ensures','freedom of choice','vote buying','bribery','rigging'],
+    ['Which of these is a national symbol of Nigeria?','The national flag','A school badge','A party logo','A company slogan']]},
+  physics: { name:'Physics', icon:'⚛️', q:[
+    ['The SI unit of force is the','newton','joule','watt','pascal'],
+    ['Which of these is a vector quantity?','Velocity','Speed','Mass','Time'],
+    ['The speed of light in a vacuum is approximately','3 × 10⁸ m/s','3 × 10⁶ m/s','3 × 10⁵ m/s','3 × 10¹⁰ m/s'],
+    ['Which of these is NOT an electromagnetic wave?','Sound wave','Radio wave','X-ray','Gamma ray'],
+    ['Atmospheric pressure is measured with a','barometer','hydrometer','ammeter','voltmeter'],
+    ['The unit of electrical resistance is the','ohm','ampere','volt','watt'],
+    ['Heat transfer by the movement of a fluid itself is','convection','conduction','radiation','evaporation'],
+    ['The bending of light as it passes from one medium to another is','refraction','reflection','diffraction','dispersion'],
+    ['Which of these has the highest frequency?','Gamma rays','Radio waves','Visible light','Microwaves'],
+    ['A hydraulic press works on','Pascal’s principle','Archimedes’ principle','Bernoulli’s principle','Newton’s third law']]},
+  motion: { name:'Physics: Motion', icon:'🏃', q:[
+    ['The rate of change of velocity is called','acceleration','speed','displacement','momentum'],
+    ['Which of these is a scalar quantity?','Speed','Velocity','Displacement','Acceleration'],
+    ['The slope of a velocity–time graph gives','acceleration','distance','speed','displacement'],
+    ['The area under a velocity–time graph gives','distance travelled','acceleration','force','momentum'],
+    ['A body moving in a circle at constant speed has','changing velocity','constant velocity','zero acceleration','no net force'],
+    ['A body stays at rest or in uniform motion unless acted upon by','an external force','gravity only','friction only','its own weight'],
+    ['Momentum is the product of','mass and velocity','mass and acceleration','force and time','mass and speed squared'],
+    ['A ball thrown vertically upward is momentarily at rest at the top. At that point its','velocity is zero','acceleration is zero','weight is zero','mass is zero'],
+    ['The SI unit of momentum is','kg m/s','N','J','kg m/s²'],
+    ['Which equation holds for uniform acceleration?','v = u + at','v = ut + a','s = vt²','v² = u + 2as']]},
+  atomic: { name:'Physics: Atomic', icon:'⚛️', q:[
+    ['The nucleus of an atom contains','protons and neutrons','protons and electrons','neutrons and electrons','electrons only'],
+    ['Isotopes of an element have the same number of','protons','neutrons','nucleons','mass number'],
+    ['The charge on a neutron is','zero','+1','−1','+2'],
+    ['Who discovered the electron?','J.J. Thomson','Rutherford','Chadwick','Bohr'],
+    ['Rutherford’s alpha-scattering experiment showed that','most of the atom’s mass is in a small positive nucleus','electrons are in the nucleus','atoms are solid spheres','neutrons carry positive charge'],
+    ['Who discovered the neutron?','James Chadwick','Rutherford','Thomson','Dalton'],
+    ['The mass number of an atom is the total number of','protons and neutrons','protons','electrons','neutrons'],
+    ['In the photoelectric effect, electrons are emitted from a metal when','light of high enough frequency falls on it','it is cooled','it is magnetised','it is stretched'],
+    ['The energy of a photon is given by','E = hf','E = mv','E = h/f','E = f/h'],
+    ['An atom that loses an electron becomes a','positive ion','negative ion','neutral atom','new element']]},
+  radio: { name:'Physics: Radioactivity', icon:'☢️', q:[
+    ['Which radiation has the greatest penetrating power?','Gamma rays','Alpha particles','Beta particles','Visible light'],
+    ['An alpha particle is identical to','a helium nucleus','an electron','a proton','a hydrogen atom'],
+    ['Beta particles are','fast-moving electrons','helium nuclei','neutrons','photons'],
+    ['The half-life of a radioactive substance is the time for','half the nuclei to decay','all the nuclei to decay','the mass to double','the activity to increase by half'],
+    ['Which radiation is not deflected by electric or magnetic fields?','Gamma rays','Alpha particles','Beta particles','Protons'],
+    ['Radioactivity is detected using a','Geiger–Müller tube','spectrometer','calorimeter','galvanometer'],
+    ['When a nucleus emits an alpha particle, its mass number','decreases by 4','decreases by 2','increases by 4','stays the same'],
+    ['In beta decay, a neutron changes into a','proton','alpha particle','positron','photon'],
+    ['Which of these is a use of radioactive isotopes?','Carbon dating','Making soap','Boiling water','Electroplating'],
+    ['Which is the thinnest barrier that stops alpha particles?','A sheet of paper','A thin aluminium sheet','A thick lead block','Several cm of concrete']]},
+  biology: { name:'Biology', icon:'🧬', q:[
+    ['The powerhouse of the cell is the','mitochondrion','nucleus','ribosome','vacuole'],
+    ['Which blood group is the universal donor?','O','A','B','AB'],
+    ['The process by which green plants make food is','photosynthesis','respiration','transpiration','digestion'],
+    ['The vector of malaria is the','female Anopheles mosquito','tsetse fly','housefly','female Culex mosquito'],
+    ['The basic unit of heredity is the','gene','chromosome','cell','nucleus'],
+    ['Which part of the nephron filters the blood?','Glomerulus','Loop of Henle','Collecting duct','Bladder'],
+    ['The enzyme that digests starch in the mouth is','salivary amylase','pepsin','lipase','trypsin'],
+    ['In a food chain, green plants are the','producers','consumers','decomposers','parasites'],
+    ['The loss of water vapour from leaves is','transpiration','translocation','osmosis','guttation'],
+    ['Which organelle is the site of protein synthesis?','Ribosome','Lysosome','Golgi body','Mitochondrion'],
+    ['Division of a unicellular organism into two is','binary fission','budding','fragmentation','conjugation'],
+    ['Which of these is a monocotyledonous plant?','Maize','Bean','Groundnut','Mango'],
+    ['Which part of the brain controls balance?','Cerebellum','Cerebrum','Medulla','Pituitary'],
+    ['Plants lose most water vapour through the','stomata','roots','stem','flowers'],
+    ['The pigment that carries oxygen in red blood cells is','haemoglobin','chlorophyll','melanin','keratin'],
+    ['Cell division that produces gametes is','meiosis','mitosis','binary fission','budding'],
+    ['The study of organisms and their environment is','ecology','genetics','taxonomy','physiology'],
+    ['Which of these is a water-borne disease?','Cholera','Malaria','Tuberculosis','Sleeping sickness']]}
+};
+let ROUND = 5, endless = false, lives = 3, seen = new Set();
+const SECS = 15;
+document.querySelectorAll('.mode').forEach(b => b.onclick = () => { S.mode = b.dataset.m; save(); render(); });
+
+// ── Question generators: endless fresh questions ──
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pickOne = a => a[rnd(0, a.length - 1)];
+function nums(r, sp) { // right answer first, then 3 distinct near-misses
+  const s = new Set([r]); let g = 0;
+  while (s.size < 4 && g++ < 80) { const v = r + rnd(1, sp) * (Math.random() < .5 ? -1 : 1); if (v >= 0) s.add(v); }
+  let k = 1; while (s.size < 4) s.add(r + sp + k++);
+  return [...s].map(String);
+}
+const pick3 = (list, not) => shuffle(list.filter(x => x !== not)).slice(0, 3);
+
+function genMath() {
+  const t = rnd(0, 6);
+  if (t === 0) { const x = rnd(2, 12), a = rnd(2, 9), b = rnd(1, 20); return [`Solve for x: ${a}x + ${b} = ${a * x + b}`, ...nums(x, 3).map(v => 'x = ' + v)]; }
+  if (t === 1) { const p = rnd(1, 6), q = rnd(p + 1, 9), R = (a, b) => `x = ${a} or ${b}`; return [`Solve: x² − ${p + q}x + ${p * q} = 0`, R(p, q), R(-p, -q), R(p, -q), R(-p, q)]; }
+  if (t === 2) { let m, n; do { m = rnd(2, 7); n = rnd(2, 7); } while (m === n); const b = rnd(2, 5); return [`Simplify: ${b}^${m} × ${b}^${n}`, `${b}^${m + n}`, `${b}^${m * n}`, `${b * b}^${m + n}`, `${b}^${Math.abs(m - n)}`]; }
+  if (t === 3) { const P = rnd(1, 20) * 1000, R = rnd(2, 10), T = rnd(1, 5), si = P * R * T / 100; return [`Find the simple interest on ₦${P} at ${R}% per annum for ${T} years.`, ...nums(si, Math.max(2, Math.round(si / 10))).map(v => '₦' + v)]; }
+  if (t === 4) { const m = rnd(12, 40), d = [rnd(1, 6), rnd(1, 6), rnd(1, 6)], a = shuffle([m + d[0], m + d[1], m - d[0], m + d[2], m - d[1] - d[2]]); return [`Find the mean of ${a.join(', ')}.`, ...nums(m, 4)]; }
+  if (t === 5) { const p = pickOne([5, 10, 15, 20, 25, 30, 40]), b = 20 * rnd(5, 50); return [`Find ${p}% of ${b}.`, ...nums(b * p / 100, Math.max(3, Math.round(b * p / 1000)))]; }
+  const T = pickOne([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[6,8,10],[9,12,15],[20,21,29]]);
+  return [`A right-angled triangle has two shorter sides of ${T[0]} cm and ${T[1]} cm. Find the hypotenuse (cm).`, ...nums(T[2], 3)];
+}
+const SYN = [['abate','reduce'],['candid','frank'],['diligent','hardworking'],['obstinate','stubborn'],['frugal','thrifty'],['reluctant','unwilling'],['hostile','unfriendly'],['ample','plentiful'],['conceal','hide'],['fragile','delicate'],['lucid','clear'],['meagre','scanty']];
+const ANT = [['generous','stingy'],['ancient','modern'],['victory','defeat'],['expand','contract'],['rural','urban'],['permanent','temporary'],['admire','despise'],['scarce','abundant'],['humble','proud'],['accept','reject'],['optimistic','pessimistic'],['vague','precise'],['arrival','departure'],['ascend','descend']];
+function genEnglish() { const s = rnd(0, 1), L = s ? SYN : ANT, [w, a] = pickOne(L); return [`Choose the word ${s ? 'nearest' : 'opposite'} in meaning to “${w}”.`, a, ...pick3(L.map(x => x[1]), a)]; }
+const CH = [['H₂O',18],['CO₂',44],['CaCO₃',100],['NaOH',40],['H₂SO₄',98],['CH₄',16],['NH₃',17],['O₂',32],['MgO',40],['KOH',56]];
+function genChemistry() {
+  const t = rnd(0, 3);
+  if (t === 0) { const [f, M] = pickOne(CH), k = rnd(1, 10); return [`How many moles are in ${M * k} g of ${f}? (Molar mass = ${M} g/mol)`, ...nums(k, 3)]; }
+  if (t === 1) { const [f, M] = pickOne(CH), k = rnd(2, 8); return [`Calculate the mass of ${k} moles of ${f}. (Molar mass = ${M} g/mol)`, ...nums(M * k, Math.max(4, M)).map(v => v + ' g')]; }
+  if (t === 2) { const c = rnd(1, 5), V = rnd(2, 6); return [`${c * V} moles of solute make ${V} dm³ of solution. Find the concentration (mol/dm³).`, ...nums(c, 2)]; }
+  const z = rnd(3, 30), n = rnd(3, 35); return [`An atom has atomic number ${z} and mass number ${z + n}. How many neutrons does it have?`, ...nums(n, 3)];
+}
+function genGeography() {
+  const t = rnd(0, 2);
+  if (t === 0) { const s = pickOne([1, 2, 5]), d = rnd(2, 12); return [`On a map of scale 1:${s * 100000}, ${d} cm represents how many km on the ground?`, ...nums(d * s, 3).map(v => v + ' km')]; }
+  if (t === 1) { const k = rnd(1, 6); return [`Two places differ by ${k * 15}° in longitude. What is their time difference in hours?`, ...nums(k, 2).map(v => v + ' h')]; }
+  const a = rnd(2, 20) * 10, d = rnd(5, 60); return [`A town has ${a * d} people living in ${a} km². Find its population density (persons per km²).`, ...nums(d, 5)];
+}
+const ARMS = [['makes laws','Legislature'],['interprets the law','Judiciary'],['enforces laws','Executive'],['approves the national budget','Legislature'],['implements government policies','Executive'],['settles disputes in courts','Judiciary'],['is headed by the President','Executive'],['is made up of the Senate and House of Representatives','Legislature']];
+const RIGHTS = ['Freedom of speech','The right to life','Freedom of movement','The right to a fair hearing','Freedom of religion'];
+const DUTIES = ['Paying taxes','Obeying the law','Voting in elections','Respecting the rights of others','Serving the nation'];
+function genCivic() {
+  if (rnd(0, 1)) { const [d, a] = pickOne(ARMS); return [`Which arm of government ${d}?`, a, ...['Legislature','Judiciary','Executive','Civil Service'].filter(x => x !== a)]; }
+  const r = rnd(0, 1), it = pickOne(r ? RIGHTS : DUTIES);
+  return [`“${it}” is a citizen’s…`, r ? 'Right' : 'Duty', 'Crime', 'Punishment', r ? 'Duty' : 'Right'];
+}
+function genPhysics() {
+  const t = rnd(0, 5);
+  if (t === 0) { const v = rnd(2, 30), s = rnd(2, 12); return [`A car covers ${v * s} m in ${s} s. Find its speed (m/s).`, ...nums(v, 4)]; }
+  if (t === 1) { const m = rnd(2, 20), a = rnd(2, 10); return [`A force acts on a ${m} kg mass producing an acceleration of ${a} m/s². Find the force (N).`, ...nums(m * a, Math.max(4, m))]; }
+  if (t === 2) { const u = rnd(0, 10), a = rnd(2, 6), s = rnd(2, 8); return [`A body starts at ${u} m/s and accelerates uniformly at ${a} m/s² for ${s} s. Find its final velocity (m/s).`, ...nums(u + a * s, 5)]; }
+  if (t === 3) { const I = rnd(1, 6), R = rnd(2, 20); return [`A current of ${I} A flows through a ${R} Ω resistor. Find the potential difference (V).`, ...nums(I * R, Math.max(3, R))]; }
+  if (t === 4) { const m = 2 * rnd(1, 10), v = rnd(2, 10); return [`Find the kinetic energy (J) of a ${m} kg body moving at ${v} m/s.`, ...nums(m / 2 * v * v, Math.max(4, v * 3))]; }
+  const A = rnd(2, 10), P = rnd(5, 50); return [`A force of ${A * P} N acts on an area of ${A} m². Find the pressure (Pa).`, ...nums(P, 5)];
+}
+const VIT = [['vitamin C','scurvy'],['vitamin D','rickets'],['vitamin A','night blindness'],['vitamin B1','beriberi'],['iron','anaemia'],['iodine','goitre'],['protein','kwashiorkor']];
+const ENZ = [['Salivary amylase','starch'],['Pepsin','protein'],['Lipase','fats'],['Sucrase','sucrose']];
+function genBiology() {
+  const t = rnd(0, 2);
+  if (t === 0) { const [v, d] = pickOne(VIT); return [`A deficiency of ${v} causes`, d, ...pick3(VIT.map(x => x[1]), d)]; }
+  if (t === 1) { const [e, s] = pickOne(ENZ); return [`${e} acts on which food substance?`, s, ...pick3(ENZ.map(x => x[1]), s)]; }
+  const par = pickOne([['Tt','Tt'],['Tt','tt'],['TT','Tt'],['TT','tt'],['TT','TT'],['tt','tt']]), tg = pickOne(['TT','Tt','tt']), kids = [];
+  for (const a of par[0]) for (const b of par[1]) kids.push([a, b].sort().join(''));
+  const F = ['0','1/4','1/2','3/4','1'], ans = F[kids.filter(k => k === tg).length];
+  return [`In a cross between ${par[0]} and ${par[1]} parents, what fraction of the offspring will be ${tg}?`, ans, ...pick3(F, ans)];
+}
+function genMotion() {
+  const t = rnd(0, 5);
+  if (t === 0) { const u = rnd(0, 10), a = rnd(2, 6), s = rnd(2, 8); return [`A car starts at ${u} m/s and accelerates at ${a} m/s² for ${s} s. Find its final velocity (m/s).`, ...nums(u + a * s, 5)]; }
+  if (t === 1) { const a = rnd(2, 8), s = rnd(2, 9), u = rnd(0, 8); return [`A body’s velocity changes from ${u} m/s to ${u + a * s} m/s in ${s} s. Find its acceleration (m/s²).`, ...nums(a, 2)]; }
+  if (t === 2) { const u = rnd(0, 6), a = 2 * rnd(1, 4), s = rnd(2, 6); return [`A body starting at ${u} m/s accelerates at ${a} m/s² for ${s} s. How far does it travel (m)?`, ...nums(u * s + a * s * s / 2, Math.max(4, s * 2))]; }
+  if (t === 3) { const u = rnd(0, 6), a = 2 * rnd(1, 4), s = rnd(2, 6), d = u * s + a * s * s / 2; return [`A body moving at ${u} m/s accelerates uniformly at ${a} m/s² over a distance of ${d} m. Find its final velocity (m/s).`, ...nums(u + a * s, 4)]; }
+  if (t === 4) { const s = rnd(1, 8); return rnd(0, 1) ? [`A stone is dropped from rest and falls for ${s} s. Find its speed on landing (m/s). (g = 10 m/s²)`, ...nums(10 * s, 8)] : [`A stone is dropped from rest and falls for ${s} s. Find the height fallen (m). (g = 10 m/s²)`, ...nums(5 * s * s, Math.max(5, 5 * s))]; }
+  const m = rnd(2, 20), v = rnd(2, 15); return [`Find the momentum (kg m/s) of a ${m} kg body moving at ${v} m/s.`, ...nums(m * v, Math.max(4, m))];
+}
+function genAtomic() {
+  const t = rnd(0, 4), z = rnd(3, 30), n = rnd(3, 35);
+  if (t === 0) return [`An atom has ${z} protons and ${n} neutrons. What is its mass number?`, ...nums(z + n, 3)];
+  if (t === 1) return [`An atom has mass number ${z + n} and atomic number ${z}. How many neutrons does it have?`, ...nums(n, 3)];
+  if (t === 2) { const q = rnd(1, 3); return [`An atom of atomic number ${z} forms an ion with a charge of +${q}. How many electrons does the ion have?`, ...nums(z - q, 3)]; }
+  if (t === 3) { const k = rnd(1, 4); return [`What is the maximum number of electrons the ${['1st','2nd','3rd','4th'][k - 1]} shell can hold? (Use 2n²)`, ...nums(2 * k * k, 4)]; }
+  return [`A neutral atom has ${z + n} nucleons, ${n} of them neutrons. How many electrons does the atom have?`, ...nums(z, 3)];
+}
+function genRadio() {
+  const t = rnd(0, 4), T = rnd(2, 12), n = rnd(1, 5), k = rnd(1, 5), A = rnd(100, 240), Z = rnd(40, 92), x = rnd(1, 3), y = rnd(0, 2);
+  if (t === 0) return [`A radioactive sample of ${k * 2 ** n} g has a half-life of ${T} days. What mass remains after ${n * T} days?`, ...nums(k, 3).map(v => v + ' g')];
+  if (t === 1) return [`How many half-lives pass in ${n * T} days if the half-life is ${T} days?`, ...nums(n, 2)];
+  if (t === 2) return [`After ${n * T} days, 1/${2 ** n} of a radioactive sample remains. Find its half-life (days).`, ...nums(T, 2)];
+  if (t === 3) return [`A nucleus of mass number ${A} and atomic number ${Z} emits ${x} alpha particle${x > 1 ? 's' : ''}. What is the new mass number?`, ...nums(A - 4 * x, 4)];
+  return [`A nucleus of atomic number ${Z} emits ${x} alpha particle${x > 1 ? 's' : ''} and ${y} beta particle${y === 1 ? '' : 's'}. What is the new atomic number?`, ...nums(Z - 2 * x + y, 3)];
+}
+const gcd = (a, b) => b ? gcd(b, a % b) : a, fr = (a, b) => `${a / gcd(a, b)}/${b / gcd(a, b)}`;
+const term = (c, p) => p === 0 ? `${c}` : p === 1 ? `${c}x` : `${c}x^${p}`;
+const TRIG = [['sin 30°','1/2'],['cos 60°','1/2'],['tan 45°','1'],['sin 90°','1'],['cos 0°','1'],['cos 90°','0'],['sin 0°','0'],['sin 45°','√2/2'],['cos 30°','√3/2'],['sin 60°','√3/2']];
+function genMathSyllabus() { // follows the JAMB/WAEC sections: number, algebra, geometry/trig, calculus, statistics
+  const t = rnd(0, 15);
+  if (t === 0) { const b = pickOne([2,3,4,5,8]), n = rnd(5, 70); return [`Convert ${n} (base 10) to base ${b}.`, n.toString(b), ...nums(n, 5).slice(1).map(v => (+v).toString(b))]; }
+  if (t === 1) { const b = pickOne([2,3,4,5,8]), n = rnd(5, 70); return [`Convert ${n.toString(b)} (base ${b}) to base 10.`, ...nums(n, 5)]; }
+  if (t === 2) { const b = pickOne([2,3,4,5,10]), k = rnd(2, 5); return [`Evaluate log base ${b} of ${b ** k}.`, ...nums(k, 2)]; }
+  if (t === 3) { const b = pickOne([2,3,4,5]), k = rnd(2, 5); return [`Find x if ${b}^x = ${b ** k}.`, ...nums(k, 2).map(v => 'x = ' + v)]; }
+  if (t === 4) { const a = rnd(15, 40), b = rnd(15, 40), c = rnd(3, 12); return [`In a class, ${a} students offer Mathematics, ${b} offer English and ${c} offer both. How many offer at least one of the two subjects?`, ...nums(a + b - c, 4)]; }
+  if (t === 5) { const k = rnd(2, 9), x1 = rnd(2, 6), x2 = rnd(7, 15); return [`y varies directly as x. If y = ${k * x1} when x = ${x1}, find y when x = ${x2}.`, ...nums(k * x2, 6)]; }
+  if (t === 6) { const m = rnd(2, 4), x1 = rnd(2, 6), y1 = m * rnd(2, 6); return [`y varies inversely as x. If y = ${y1} when x = ${x1}, find y when x = ${m * x1}.`, ...nums(y1 / m, 3)]; }
+  if (t === 7) { const a = rnd(2, 9), d = rnd(2, 6), n = pickOne([5,6,7,8,9,10,12,15]); return [`The first term of an AP is ${a} and the common difference is ${d}. Find the ${n}th term.`, ...nums(a + (n - 1) * d, Math.max(3, d * 2))]; }
+  if (t === 8) { const a = rnd(1, 4), r = rnd(2, 3), n = pickOne([4,5,6]); return [`A GP has first term ${a} and common ratio ${r}. Find its ${n}th term.`, ...nums(a * r ** (n - 1), Math.max(3, a * r))]; }
+  if (t === 9) { const [e, v] = pickOne(TRIG); return [`Find the value of ${e}.`, v, ...pick3(['0','1/2','1','√3/2','√2/2'], v)]; }
+  if (t === 10) { const k = 7 * rnd(1, 4); return rnd(0, 1) ? [`Find the area of a circle of radius ${k} cm. (π = 22/7)`, ...nums(22 * k * k / 7, Math.max(6, k * 3)).map(v => v + ' cm²')] : [`Find the circumference of a circle of radius ${k} cm. (π = 22/7)`, ...nums(44 * k / 7, 6).map(v => v + ' cm')]; }
+  if (t === 11) { const T = pickOne([[3,4,5],[5,12,13],[8,15,17],[6,8,10]]), x = rnd(1, 5), y = rnd(1, 5); return [`Find the distance between the points (${x}, ${y}) and (${x + T[0]}, ${y + T[1]}).`, ...nums(T[2], 3)]; }
+  if (t === 12) { const s = new Set(); while (s.size < 5) s.add(rnd(1, 30)); const a = [...s].sort((p, q) => p - q), m = rnd(0, 1); return [`Find the ${m ? 'median' : 'range'} of ${shuffle(a).join(', ')}.`, ...nums(m ? a[2] : a[4] - a[0], 4)]; }
+  if (t === 13) { const n = rnd(5, 9), r = rnd(2, 3); let P = 1; for (let i = 0; i < r; i++) P *= n - i; return rnd(0, 1) ? [`In how many ways can ${r} students be chosen from ${n} students?`, ...nums(P / (r === 2 ? 2 : 6), 5)] : [`In how many ways can ${r} of ${n} runners finish 1st, 2nd${r === 3 ? ' and 3rd' : ''}?`, ...nums(P, Math.max(4, n))]; }
+  if (t === 14) { let r, b; do { r = rnd(2, 9); b = rnd(2, 9); } while (r === b); const R = fr(r, r + b), o = new Set([R, fr(b, r + b), fr(r, b), fr(r + 1, r + b + 1)]); while (o.size < 4) o.add(`${rnd(1, 5)}/${rnd(6, 17)}`); return [`A bag contains ${r} red and ${b} blue balls. What is the probability of picking a red ball?`, R, ...[...o].filter(x => x !== R).slice(0, 3)]; }
+  const a = rnd(2, 9), n = rnd(2, 6);
+  return rnd(0, 1) ? [`Differentiate ${term(a, n)} with respect to x.`, term(a * n, n - 1), term(a, n - 1), term(a * n, n), term(a * (n + 1), n - 1)]
+    : [`Evaluate the integral of ${term(a * n, n - 1)} with respect to x.`, `${term(a, n)} + c`, `${term(a * n, n)} + c`, `${term(a, n - 1)} + c`, `${term(a * n * n, n)} + c`];
+}
+const GEN = { math: () => Math.random() < .65 ? genMathSyllabus() : genMath(), english: genEnglish, chemistry: genChemistry, geography: genGeography, civic: genCivic, physics: genPhysics, motion: genMotion, atomic: genAtomic, radio: genRadio, biology: genBiology };
+// ── ✨ AI questions (Claude writes fresh WAEC/JAMB-style questions) ──
+let aiBuf = [], aiBusy = false, sampleFn = null;
+async function fetchAI(k) {
+  if (!sampleFn || aiBusy) return; aiBusy = true;
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 60000);
+  try {
+    const avoid = [...seen].slice(-12).join(' | ');
+    const arr = await sampleFn.json(`You are a Nigerian WAEC (SSCE) and JAMB (UTME) examiner. Write 8 DIFFERENT multiple-choice questions in ${BANK[k].name} at that exam standard, covering varied syllabus topics (variety seed ${Math.random().toString(36).slice(2)}). Do not repeat these: ${avoid || 'none'}. Each question must have exactly 4 options with exactly ONE correct answer, and the answer must be factually correct. Keep each option under 60 characters. Reply with ONLY a JSON array like [{"q":"question","right":"correct option","wrong":["option","option","option"]}] and nothing else.`, { modelTier: 'default', signal: ctl.signal, cache: false });
+    if (k !== subject || !Array.isArray(arr)) return;
+    arr.forEach(o => {
+      if (o && typeof o.q === 'string' && typeof o.right === 'string' && Array.isArray(o.wrong) && o.wrong.length === 3) {
+        const opts = [o.right, ...o.wrong].map(String);
+        if (new Set(opts).size === 4 && o.q.length < 300) aiBuf.push([o.q, ...opts]);
+      }
+    });
+  } catch (e) {
+    if (e && e.code === 'not_granted') { S.ai = false; save(); render(); $('aiMode').hidden = true; }
+  } finally { clearTimeout(timer); aiBusy = false; }
+}
+function nextQ() {
+  if (S.ai && aiBuf.length) { const a = aiBuf.shift(); if (aiBuf.length < 3) fetchAI(subject); seen.add(a[0]); return a; }
+  const pool = BANK[subject].q.filter(x => !seen.has(x[0]));
+  let q;
+  if (pool.length && Math.random() < .5) q = pickOne(pool);
+  else { let g = 0; do q = GEN[subject](Math.min(5, 1 + Math.floor(idx / 3))); while (seen.has(q[0]) && g++ < 30); }
+  seen.add(q[0]); return q;
+}
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+// ── Saved stats (safe if storage is unavailable) ──
+let S = { xp:0, best:0, played:0, light:false, sound:true, mode:'quick' };
+try { Object.assign(S, JSON.parse(localStorage.getItem('somto_scholar') || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem('somto_scholar', JSON.stringify(S)); } catch (e) {} };
+
+function render() {
+  $('xp').textContent = S.xp; $('best').textContent = S.best; $('played').textContent = S.played;
+  document.body.classList.toggle('light', S.light);
+  $('themeBtn').textContent = S.light ? '☀️' : '🌙';
+  $('soundBtn').textContent = S.sound ? '🔊' : '🔇';
+  document.querySelectorAll('.mode').forEach(b => b.classList.toggle('on', b.dataset.m === S.mode));
+  $('aiMode').classList.toggle('on', !!S.ai);
+}
+$('cats').innerHTML = Object.entries(BANK).map(([k, c]) =>
+  `<button class="cat" data-k="${k}"><span class="ic">${c.icon}</span><strong>${c.name.toUpperCase()}</strong><small>WAEC · JAMB</small></button>`).join('');
+$('cats').onclick = e => { const b = e.target.closest('.cat'); if (b) start(b.dataset.k); };
+$('themeBtn').onclick = () => { S.light = !S.light; save(); render(); };
+$('soundBtn').onclick = () => { S.sound = !S.sound; save(); render(); };
+
+// ── Sound (one shared audio context) ──
+let ac;
+function tone(freqs, type, dur, vol = .25) {
+  if (!S.sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+    freqs.forEach((f, i) => {
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + i * .11;
+      o.type = type; o.frequency.value = f; o.connect(g); g.connect(ac.destination);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      o.start(t); o.stop(t + dur);
+    });
+  } catch (e) {}
+}
+const sndOk = () => tone([523, 659, 784, 1047], 'triangle', .3);
+const sndNo = () => tone([300, 200], 'sawtooth', .3, .18);
+
+// ── Quiz flow ──
+let subject, qs, idx, score, streak, ans, left, tick;
+function show(id) { ['home','quiz','result'].forEach(s => $(s).hidden = s !== id); window.scrollTo(0, 0); }
+
+async function start(k) {
+  subject = k; endless = S.mode === 'endless'; ROUND = endless ? Infinity : 5; qs = []; seen = new Set(); lives = 3; idx = 0; score = 0; streak = 0;
+  aiBuf = [];
+  show('quiz');
+  if (S.ai && sampleFn) {
+    clearInterval(tick); $('qNum').textContent = ''; $('opts').innerHTML = ''; $('fb').textContent = ''; $('nextBtn').hidden = true;
+    $('qText').textContent = '✨ Claude is writing your questions…';
+    await fetchAI(k);
+    if ($('quiz').hidden) return;
+  }
+  ask();
+}
+function ask() {
+  qs[idx] = nextQ(); const [q, right, ...wrong] = qs[idx];
+  ans = right; $('qNum').textContent = endless ? `Question ${idx + 1} · ${'❤️'.repeat(lives)}` : `Question ${idx + 1}/${ROUND}`;
+  $('prog').style.width = endless ? (lives / 3 * 100) + '%' : (idx / ROUND * 100) + '%';
+  $('qText').textContent = q; $('fb').textContent = ''; $('fb').className = 'fb'; $('nextBtn').hidden = true;
+  $('opts').innerHTML = '';
+  shuffle([right, ...wrong]).forEach(o => {
+    const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+    b.onclick = () => pick(o); $('opts').appendChild(b);
+  });
+  left = SECS; clearInterval(tick); paint();
+  tick = setInterval(() => { left -= .1; paint(); if (left <= 0) pick(null); }, 100);
+}
+function paint() {
+  $('timer').style.width = Math.max(0, left / SECS * 100) + '%';
+  $('timeLeft').textContent = Math.max(0, Math.ceil(left)) + 's';
+}
+function pick(choice) {
+  clearInterval(tick);
+  document.querySelectorAll('.opt').forEach(b => {
+    b.disabled = true;
+    if (b.textContent === ans) b.classList.add('ok');
+    else if (b.textContent === choice) b.classList.add('no');
+  });
+  if (choice === ans) {
+    const bonus = Math.round(left); const gain = 10 + bonus;
+    score++; streak++; S.xp += gain; S.best = Math.max(S.best, streak); sndOk();
+    $('fb').textContent = `✅ Correct! +${gain} XP` + (streak >= 3 ? ` · 🔥 ${streak} in a row` : ''); $('fb').className = 'fb ok';
+  } else {
+    streak = 0; if (endless) lives--; sndNo();
+    $('fb').textContent = choice === null ? `⏰ Time’s up! Answer: ${ans}` : `❌ Not quite. Answer: ${ans}`; $('fb').className = 'fb no';
+  }
+  save(); render();
+  $('nextBtn').textContent = (endless ? lives <= 0 : idx === ROUND - 1) ? 'SEE RESULTS →' : 'NEXT →'; $('nextBtn').hidden = false;
+}
+$('nextBtn').onclick = () => { idx++; (idx >= ROUND || (endless && lives <= 0)) ? finish() : ask(); };
+$('quitBtn').onclick = () => { clearInterval(tick); show('home'); };
+$('againBtn').onclick = () => start(subject);
+$('homeBtn').onclick = () => show('home');
+
+function finish() {
+  S.played++; save(); render(); $('prog').style.width = '100%';
+  const top = endless ? score >= 10 : score === ROUND, good = endless ? score >= 5 : score >= 3;
+  const [e, t, m] = top ? ['🏆', endless ? 'LEGENDARY RUN' : 'PERFECT SCORE', 'Flawless. You’re a true scholar!']
+    : good ? ['🎯','WELL DONE','Solid work. Can you beat that score?']
+    : ['💪','KEEP GOING','Every attempt makes you sharper. Try again!'];
+  $('rEmoji').textContent = e; $('rTitle').textContent = t; $('rMsg').textContent = m; $('rScore').textContent = endless ? `${score} correct` : `${score}/${ROUND}`;
+  show('result'); if (top) confetti();
+}
+
+// ── Confetti ──
+function confetti() {
+  const c = $('confetti'), x = c.getContext('2d'); c.width = innerWidth; c.height = innerHeight;
+  const cols = ['#00f5d4','#f5a623','#ff4d6d','#4f46e5','#ffffff'];
+  const p = Array.from({ length: 130 }, () => ({ x: Math.random() * c.width, y: -Math.random() * c.height, w: 6 + Math.random() * 8, h: 4 + Math.random() * 5, r: Math.random() * 6, vr: (Math.random() - .5) * .3, vy: 3 + Math.random() * 4, vx: (Math.random() - .5) * 3, c: cols[Math.random() * cols.length | 0] }));
+  (function f() {
+    x.clearRect(0, 0, c.width, c.height); let live = false;
+    p.forEach(o => { o.y += o.vy; o.x += o.vx; o.r += o.vr; if (o.y < c.height + 20) live = true;
+      x.save(); x.translate(o.x, o.y); x.rotate(o.r); x.fillStyle = o.c; x.fillRect(-o.w / 2, -o.h / 2, o.w, o.h); x.restore(); });
+    if (live) requestAnimationFrame(f); else x.clearRect(0, 0, c.width, c.height);
+  })();
+}
+
+(async () => { try { sampleFn = await claude.use('sample'); } catch (e) {} if (sampleFn) $('aiMode').hidden = false; })();
+$('aiMode').onclick = () => { S.ai = !S.ai; save(); render(); };
+render();
+</script>
+</body>
+</html>

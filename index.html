@@ -382,7 +382,7 @@ const BANK = {
     ['The study of organisms and their environment is','ecology','genetics','taxonomy','physiology'],
     ['Which of these is a water-borne disease?','Cholera','Malaria','Tuberculosis','Sleeping sickness']]}
 };
-let ROUND = 5, endless = false, lives = 3, seen = new Set();
+let ROUND = 5, endless = false, lives = 3, seen = new Set(); let currentExplanation = '';
 const SECS = 15;
 document.querySelectorAll('.mode').forEach(b => b.onclick = () => { S.mode = b.dataset.m; save(); render(); });
 
@@ -587,7 +587,7 @@ async function start(k) {
   ask();
 }
 function ask() {
-  qs[idx] = nextQ(); const [q, right, ...wrong] = qs[idx];
+  qs[idx] = nextQ(); const [q, right, ...wrong] = qs[idx]; currentExplanation = qs[idx][5] || 'Keep practising! Review this topic to understand the correct answer.';
   ans = right; $('qNum').textContent = endless ? `Question ${idx + 1} · ${'❤️'.repeat(lives)}` : `Question ${idx + 1}/${ROUND}`;
   $('prog').style.width = endless ? (lives / 3 * 100) + '%' : (idx / ROUND * 100) + '%';
   $('qText').textContent = q; $('fb').textContent = ''; $('fb').className = 'fb'; $('nextBtn').hidden = true;
@@ -618,7 +618,9 @@ function pick(choice) {
     streak = 0; if (endless) lives--; sndNo();
     $('fb').textContent = choice === null ? `⏰ Time’s up! Answer: ${ans}` : `❌ Not quite. Answer: ${ans}`; $('fb').className = 'fb no';
   }
-  save(); render();
+  $('fb').textContent += '
+
+📘 Explanation: ' + currentExplanation;   save(); render();
   $('nextBtn').textContent = (endless ? lives <= 0 : idx === ROUND - 1) ? 'SEE RESULTS →' : 'NEXT →'; $('nextBtn').hidden = false;
 }
 $('nextBtn').onclick = () => { idx++; (idx >= ROUND || (endless && lives <= 0)) ? finish() : ask(); };

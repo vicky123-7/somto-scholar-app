@@ -91,6 +91,90 @@ footer { margin:30px 0 10px; color:var(--muted); font-size:.8rem; letter-spacing
 </style>
 </head>
 <body>
+  
+<div id="welcome-screen" style="
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  overflow-y:auto;
+  background:linear-gradient(135deg,#07172f,#102d49,#075b66);
+  color:white;
+  font-family:Arial,sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:30px 20px;
+  box-sizing:border-box;
+">
+  <div style="max-width:650px;width:100%;">
+    <div style="font-size:55px;margin-bottom:15px;">🎓</div>
+
+    <p style="color:#55e0d0;font-size:14px;letter-spacing:3px;font-weight:bold;">
+      WELCOME TO
+    </p>
+
+    <h1 style="font-size:clamp(35px,7vw,58px);margin:15px 0;color:white;">
+      VickyRae's Scholar App
+    </h1>
+
+    <h2 style="font-size:25px;color:#55e0d0;margin-bottom:20px;">
+      Learn, Practice, and Shine!
+    </h2>
+
+    <p style="font-size:17px;line-height:1.8;color:#d7e8f0;">
+      Your journey to better learning starts here.
+      Practice, test your knowledge, improve your skills
+      and celebrate every achievement!
+    </p>
+
+    <div style="
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:12px;
+      margin:30px 0;
+    ">
+      <div style="background:#ffffff18;padding:18px;border-radius:14px;min-width:130px;">
+        <div style="font-size:30px;">📚</div>
+        <strong>Learn</strong>
+        <p style="font-size:13px;color:#d7e8f0;">Explore subjects</p>
+      </div>
+
+      <div style="background:#ffffff18;padding:18px;border-radius:14px;min-width:130px;">
+        <div style="font-size:30px;">✍️</div>
+        <strong>Practice</strong>
+        <p style="font-size:13px;color:#d7e8f0;">Build your skills</p>
+      </div>
+
+      <div style="background:#ffffff18;padding:18px;border-radius:14px;min-width:130px;">
+        <div style="font-size:30px;">🏆</div>
+        <strong>Shine</strong>
+        <p style="font-size:13px;color:#d7e8f0;">Track your progress</p>
+      </div>
+    </div>
+
+    <button
+      onclick="document.getElementById('welcome-screen').remove()"
+      style="
+        background:#55e0d0;
+        color:#07172f;
+        border:0;
+        border-radius:30px;
+        padding:17px 42px;
+        font-size:18px;
+        font-weight:bold;
+        cursor:pointer;
+      ">
+      Start Learning →
+    </button>
+
+    <p style="font-size:12px;color:#b5cbd8;margin-top:25px;">
+      Your success story begins with one step.
+    </p>
+  </div>
+</div>
+
 <canvas id="confetti"></canvas>
 
 <div class="topbar">

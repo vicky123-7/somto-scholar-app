@@ -618,9 +618,8 @@ function pick(choice) {
     streak = 0; if (endless) lives--; sndNo();
     $('fb').textContent = choice === null ? `⏰ Time’s up! Answer: ${ans}` : `❌ Not quite. Answer: ${ans}`; $('fb').className = 'fb no';
   }
-  $('fb').textContent += '
-
-📘 Explanation: ' + currentExplanation;   save(); render();
+$('fb').textContent += '\n\n📘 Explanation: ' + currentExplanation;
+   save(); render();
   $('nextBtn').textContent = (endless ? lives <= 0 : idx === ROUND - 1) ? 'SEE RESULTS →' : 'NEXT →'; $('nextBtn').hidden = false;
 }
 $('nextBtn').onclick = () => { idx++; (idx >= ROUND || (endless && lives <= 0)) ? finish() : ask(); };
